@@ -1,0 +1,11 @@
+{
+  "port": 4242,
+  "db_settings": {
+    "user": "golang",
+    "password": "golang",
+    "host": "localhost",
+    "database": "ticket",
+    "protocol": "tcp",
+    "port": 3306
+  }
+}

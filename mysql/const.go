@@ -1,5 +1,6 @@
 package mysql
 
+const Name = "mysql"
 const WildcardAll string = "*"
 const Comma string = ", "
 const Select string = "SELECT "
