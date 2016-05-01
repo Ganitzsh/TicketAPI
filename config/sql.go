@@ -7,8 +7,8 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-// SQLConfig is the representation of the SQL Server settings
-type SQLConfig struct {
+// MySQLConfig is the representation of the SQL Server settings
+type MySQLConfig struct {
 	Username string `json:"user"`
 	Password string `json:"password"`
 	Host     string `json:"host"`
@@ -18,16 +18,16 @@ type SQLConfig struct {
 }
 
 // GetConnString returns the connection string to the database
-func (c *SQLConfig) GetConnString() string {
+func (c *MySQLConfig) GetConnString() string {
 	port := strconv.Itoa(c.Port)
 	dsn := c.Username + ":" + c.Password + "@" + c.Protocol + "(" + c.Host + ":" + port + ")/" + c.DBName
 	logrus.Info(dsn)
 	return dsn
 }
 
-// NewConfig is
-func NewConfig(user, pass, host, db, protocol string, port int) (*SQLConfig, error) {
-	conf := SQLConfig{
+// NewMySQLConfig is
+func NewMySQLConfig(user, pass, host, db, protocol string, port int) (*MySQLConfig, error) {
+	conf := MySQLConfig{
 		user,
 		pass,
 		host,
@@ -39,6 +39,6 @@ func NewConfig(user, pass, host, db, protocol string, port int) (*SQLConfig, err
 }
 
 // GetDBType returns a string containing the name of the database type
-func (c *SQLConfig) GetDBType() string {
+func (c *MySQLConfig) GetDBType() string {
 	return mysql.Name
 }

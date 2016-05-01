@@ -7,17 +7,19 @@ import (
 	"github.com/SQLApi/mysql"
 )
 
-type QueryBuilder struct {
+// MySQLQueryBuilder is the main query builder for MySQL flavored DB
+type MySQLQueryBuilder struct {
 	tableName  string
 	primaryKey string
 }
 
-func NewQuery(tableName, primaryKey string) *QueryBuilder {
-	return &QueryBuilder{tableName, primaryKey}
+// NewMySQLQuery retruns an instance of a MySQLQueryBuilder
+func NewMySQLQuery(tableName, primaryKey string) *MySQLQueryBuilder {
+	return &MySQLQueryBuilder{tableName, primaryKey}
 }
 
 // GetAll returns all the users from the database
-func (qb *QueryBuilder) GetAll(selector []string) string {
+func (qb *MySQLQueryBuilder) GetAll(selector []string) string {
 	query := mysql.Select
 	if selector != nil {
 		count := len(selector)
@@ -35,7 +37,7 @@ func (qb *QueryBuilder) GetAll(selector []string) string {
 }
 
 // GetByID returns a user with specific ID
-func (qb *QueryBuilder) GetByID(id int, selector []string) string {
+func (qb *MySQLQueryBuilder) GetByID(id int, selector []string) string {
 	sID := strconv.Itoa(id)
 	query := mysql.Select
 	if selector != nil {
@@ -54,7 +56,7 @@ func (qb *QueryBuilder) GetByID(id int, selector []string) string {
 }
 
 // GetWhere returns one or many users corresponding to  wehre = values
-func (qb *QueryBuilder) GetWhere(selector, fileds, values []string) (string, error) {
+func (qb *MySQLQueryBuilder) GetWhere(selector, fileds, values []string) (string, error) {
 	err := checkWhereConsistency(fileds, values)
 	if err != nil {
 		return "", err
@@ -83,12 +85,12 @@ func (qb *QueryBuilder) GetWhere(selector, fileds, values []string) (string, err
 }
 
 // GetTableName returns the name of the users table
-func (qb *QueryBuilder) GetTableName() string {
+func (qb *MySQLQueryBuilder) GetTableName() string {
 	return "user"
 }
 
 // GetPrimaryKeyField returns the primary key field name for this table
-func (qb *QueryBuilder) GetPrimaryKeyField() string {
+func (qb *MySQLQueryBuilder) GetPrimaryKeyField() string {
 	return "id"
 }
 
@@ -110,7 +112,7 @@ func checkWhereConsistency(fields, values []string) error {
 }
 
 // GetInnerJoin returns
-func (qb *QueryBuilder) GetInnerJoin(selector []string, joinedTable string, onRootColumn, onJoinedColumn string) string {
+func (qb *MySQLQueryBuilder) GetInnerJoin(selector []string, joinedTable string, onRootColumn, onJoinedColumn string) string {
 	query := mysql.Select
 	if selector != nil {
 		count := len(selector)

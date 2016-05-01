@@ -9,19 +9,18 @@ import (
 
 // APIConfig is
 type APIConfig struct {
-	ListeningPort int        `json:"port"`
-	DBType        string     `json:"db_type"`
-	DBSettings    *SQLConfig `json:"db_settings"`
+	ListeningPort int             `json:"port"`
+	DBType        string          `json:"db_type"`
+	DBSettings    json.RawMessage `json:"db_settings"`
 }
 
 // NewAPIConfig is
-func NewAPIConfig(port int, dbType string, dbSettings *SQLConfig) (*APIConfig, error) {
-	conf := &APIConfig{
-		port,
-		dbType,
-		dbSettings,
+func NewAPIConfig(port int, dbType string) (*APIConfig, error) {
+	conf := APIConfig{
+		ListeningPort: port,
+		DBType:        dbType,
 	}
-	return conf, nil
+	return &conf, nil
 }
 
 // NewAPIConfigFromFile returs
