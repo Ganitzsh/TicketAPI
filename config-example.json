@@ -1,0 +1,12 @@
+{
+  "port": 4242,
+  "db_type": "mysql",
+  "db_settings": {
+    "user": "golang",
+    "password": "golang",
+    "host": "localhost",
+    "database": "ticket",
+    "protocol": "tcp",
+    "port": 3306
+  }
+}

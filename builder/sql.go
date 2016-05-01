@@ -7,6 +7,7 @@ import (
 	"github.com/SQLApi/mysql"
 )
 
+// MySQLQueryBuilder is the main query builder for MySQL flavored DB
 type MySQLQueryBuilder struct {
 	tableName  string
 	primaryKey string
