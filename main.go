@@ -13,6 +13,17 @@ type TestType struct {
 	Size      float64
 }
 
+type Customer struct {
+	CustomerID   string
+	CompanyName  string
+	ContactName  string
+	ContactTitle string
+	Address      string
+	City         string
+	PostalCode   string
+	Country      string
+}
+
 func main() {
 	fmt.Println(builder.NewMySQLQuery("user", "id").GetAll(nil))
 	fmt.Println(builder.NewMySQLQuery("user", "id").GetAll([]string{"col1", "col2"}))
@@ -35,6 +46,16 @@ func main() {
 		1.60,
 	}
 
+	c := Customer{
+		CustomerID:  "BLABL",
+		CompanyName: "Les Beaufs",
+		ContactName: "Maurice LeBlanc",
+		Address:     "3 Rue des plaines",
+		City:        "Nice",
+		PostalCode:  "89780",
+		Country:     "France",
+	}
+
 	fmt.Println(builder.NewMySQLQuery("user", "id").Insert(tmp))
 	fmt.Println(builder.NewMySQLQuery("user", "id").Delete(tmp))
 	fmt.Println(builder.NewMySQLQuery("user", "id").Update(newTmp, tmp))
@@ -49,6 +70,23 @@ func main() {
 	}
 	fmt.Println(res)
 	res, err = h.GetBy("Categories", []string{"CategoryName", "Description"}, []string{"CategoryID"}, []string{"1"})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(res)
+	res, err = h.Delete("Customers", c)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(res)
+	res, err = h.Insert("Customers", c)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(res)
+	new := c
+	new.PostalCode = "75018"
+	res, err = h.Update("Customers", new, c)
 	if err != nil {
 		panic(err)
 	}

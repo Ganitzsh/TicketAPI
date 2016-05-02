@@ -7,5 +7,5 @@ type IHandler interface {
 	GetBy(o ...interface{}) (interface{}, error)
 	Insert(o ...interface{}) (interface{}, error)
 	Update(o ...interface{}) (interface{}, error)
-	Delete(o ...interface{})
+	Delete(o ...interface{}) (interface{}, error)
 }

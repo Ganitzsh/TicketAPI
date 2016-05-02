@@ -77,13 +77,52 @@ func (h *MySQLHandler) Insert(o ...interface{}) (interface{}, error) {
 	if o == nil {
 		return nil, errors.New("No data to insert")
 	}
-	return nil, nil
+	tableName := o[0].(string)
+	obj := o[1]
+	query, args, err := builder.NewMySQLQuery(tableName, "").Insert(obj)
+	if err != nil {
+		return nil, err
+	}
+	stmt, err := h.Conn.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	return stmt.Exec(args...)
 }
 
 func (h *MySQLHandler) Update(o ...interface{}) (interface{}, error) {
-	return nil, nil
+	if o == nil {
+		return nil, errors.New("No data to update")
+	}
+	tableName := o[0].(string)
+	new := o[1]
+	old := o[2]
+	query, args, err := builder.NewMySQLQuery(tableName, "").Update(new, old)
+	if err != nil {
+		return nil, err
+	}
+	stmt, err := h.Conn.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	logrus.WithField("args", args).Info(query)
+	return stmt.Exec(args...)
 }
 
-func (h *MySQLHandler) Delete(o ...interface{}) {
-
+func (h *MySQLHandler) Delete(o ...interface{}) (interface{}, error) {
+	if o == nil {
+		return nil, errors.New("No data to delete")
+	}
+	tableName := o[0].(string)
+	obj := o[1]
+	query, args, err := builder.NewMySQLQuery(tableName, "").Delete(obj)
+	if err != nil {
+		return nil, err
+	}
+	stmt, err := h.Conn.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	logrus.WithField("args", args).Info(query)
+	return stmt.Exec(args...)
 }

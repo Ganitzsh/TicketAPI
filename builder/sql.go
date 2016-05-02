@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/SQLApi/mysql"
+	"github.com/Sirupsen/logrus"
 )
 
 // MySQLQueryBuilder is the main query builder for MySQL flavored DB
@@ -133,22 +134,28 @@ func (qb *MySQLQueryBuilder) GetInnerJoin(selector []string, joinedTable string,
 }
 
 // Insert returns
-func (qb *MySQLQueryBuilder) Insert(o interface{}) (string, error) {
-	query := mysql.InsertInto + qb.tableName + mysql.Values + "("
+func (qb *MySQLQueryBuilder) Insert(o interface{}) (string, []interface{}, error) {
+	var args []interface{}
+	sQuery := mysql.Insert + qb.tableName + mysql.Set
+	query := mysql.Insert + qb.tableName + mysql.Set
 	v := reflect.ValueOf(o)
 	for i := 0; i < v.NumField(); i++ {
 		t := v.Field(i).Interface()
 		switch t := t.(type) {
 		case string:
+			args = append(args, t)
 			query += "\"" + t + "\""
 		case int:
+			args = append(args, strconv.Itoa(t))
 			query += strconv.Itoa(t)
 		case float64:
 			number := strconv.FormatFloat(t, 'e', -1, 64)
 			s := strings.Split(number, "e")
 			if len(s) < 2 {
+				args = append(args, number)
 				query += number
 			} else {
+				args = append(args, s[0])
 				query += s[0]
 			}
 		}
@@ -156,12 +163,30 @@ func (qb *MySQLQueryBuilder) Insert(o interface{}) (string, error) {
 			query += mysql.Comma
 		}
 	}
-	query += ")"
-	return query + mysql.EndQuery, nil
+	w := reflect.Indirect(v)
+	st := reflect.TypeOf(o)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		name := field.Tag.Get("db")
+		if name == "" {
+			sQuery += w.Type().Field(i).Name + mysql.Equals + "?"
+		} else {
+			sQuery += name + mysql.Equals + "?"
+		}
+		if i != v.NumField()-1 {
+			query += mysql.Comma
+			sQuery += mysql.Comma
+		}
+	}
+	query += ")" + mysql.EndQuery
+	logrus.Info(sQuery)
+	return sQuery, args, nil
 }
 
 // Delete returns
-func (qb *MySQLQueryBuilder) Delete(o interface{}) (string, error) {
+func (qb *MySQLQueryBuilder) Delete(o interface{}) (string, []interface{}, error) {
+	var args []interface{}
+	squery := mysql.Delete + mysql.From + qb.tableName + mysql.Where
 	query := mysql.Delete + mysql.From + qb.tableName + mysql.Where
 	v := reflect.ValueOf(o)
 	w := reflect.Indirect(v)
@@ -170,33 +195,43 @@ func (qb *MySQLQueryBuilder) Delete(o interface{}) (string, error) {
 		field := st.Field(i)
 		name := field.Tag.Get("db")
 		if name == "" {
+			squery += w.Type().Field(i).Name + mysql.Equals + "?"
 			query += w.Type().Field(i).Name + mysql.Equals
 		} else {
+			squery += name + mysql.Equals + "?"
 			query += name + mysql.Equals
 		}
 		t := v.Field(i).Interface()
 		switch t := t.(type) {
 		case string:
+			args = append(args, t)
 			query += "\"" + t + "\""
 		case int:
+			args = append(args, strconv.Itoa(t))
 			query += strconv.Itoa(t)
 		case float64:
 			number := strconv.FormatFloat(t, 'e', -1, 64)
 			s := strings.Split(number, "e")
 			if len(s) < 2 {
+				args = append(args, number)
 				query += number
 			} else {
+				args = append(args, s[0])
 				query += s[0]
 			}
 		}
 		if i != v.NumField()-1 {
+			squery += mysql.And
 			query += mysql.And
 		}
 	}
-	return query + mysql.EndQuery, nil
+	query += mysql.EndQuery
+	return squery, args, nil
 }
 
-func (qb *MySQLQueryBuilder) Update(new, old interface{}) (string, error) {
+func (qb *MySQLQueryBuilder) Update(new, old interface{}) (string, []interface{}, error) {
+	var args []interface{}
+	squery := mysql.Update + qb.tableName + mysql.Set
 	query := mysql.Update + qb.tableName + mysql.Set
 	v := reflect.ValueOf(new)
 	w := reflect.Indirect(v)
@@ -205,29 +240,37 @@ func (qb *MySQLQueryBuilder) Update(new, old interface{}) (string, error) {
 		field := st.Field(i)
 		name := field.Tag.Get("db")
 		if name == "" {
+			squery += w.Type().Field(i).Name + mysql.Equals + "?"
 			query += w.Type().Field(i).Name + mysql.Equals
 		} else {
+			squery += name + mysql.Equals + "?"
 			query += name + mysql.Equals
 		}
 		t := v.Field(i).Interface()
 		switch t := t.(type) {
 		case string:
+			args = append(args, t)
 			query += "\"" + t + "\""
 		case int:
+			args = append(args, strconv.Itoa(t))
 			query += strconv.Itoa(t)
 		case float64:
 			number := strconv.FormatFloat(t, 'e', -1, 64)
 			s := strings.Split(number, "e")
 			if len(s) < 2 {
+				args = append(args, number)
 				query += number
 			} else {
+				args = append(args, s[0])
 				query += s[0]
 			}
 		}
 		if i != v.NumField()-1 {
+			squery += mysql.Comma
 			query += mysql.Comma
 		}
 	}
+	squery += mysql.Where
 	query += mysql.Where
 	v = reflect.ValueOf(old)
 	w = reflect.Indirect(v)
@@ -236,28 +279,36 @@ func (qb *MySQLQueryBuilder) Update(new, old interface{}) (string, error) {
 		field := st.Field(i)
 		name := field.Tag.Get("db")
 		if name == "" {
+			squery += w.Type().Field(i).Name + mysql.Equals + "?"
 			query += w.Type().Field(i).Name + mysql.Equals
 		} else {
+			squery += name + mysql.Equals + "?"
 			query += name + mysql.Equals
 		}
 		t := v.Field(i).Interface()
 		switch t := t.(type) {
 		case string:
+			args = append(args, t)
 			query += "\"" + t + "\""
 		case int:
+			args = append(args, strconv.Itoa(t))
 			query += strconv.Itoa(t)
 		case float64:
 			number := strconv.FormatFloat(t, 'e', -1, 64)
 			s := strings.Split(number, "e")
 			if len(s) < 2 {
+				args = append(args, number)
 				query += number
 			} else {
+				args = append(args, s[0])
 				query += s[0]
 			}
 		}
 		if i != v.NumField()-1 {
-			query += mysql.Comma
+			squery += mysql.And
+			query += mysql.And
 		}
 	}
-	return query + mysql.EndQuery, nil
+	query += mysql.EndQuery
+	return squery, args, nil
 }
