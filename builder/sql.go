@@ -2,7 +2,9 @@ package builder
 
 import (
 	"errors"
+	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/SQLApi/mysql"
 )
@@ -128,4 +130,134 @@ func (qb *MySQLQueryBuilder) GetInnerJoin(selector []string, joinedTable string,
 	query += mysql.From + qb.tableName + mysql.InnerJoin + joinedTable + mysql.On
 	query += qb.tableName + "." + onRootColumn + mysql.Equals + joinedTable + "." + onJoinedColumn
 	return query + mysql.EndQuery
+}
+
+// Insert returns
+func (qb *MySQLQueryBuilder) Insert(o interface{}) (string, error) {
+	query := mysql.InsertInto + qb.tableName + mysql.Values + "("
+	v := reflect.ValueOf(o)
+	for i := 0; i < v.NumField(); i++ {
+		t := v.Field(i).Interface()
+		switch t := t.(type) {
+		case string:
+			query += "\"" + t + "\""
+		case int:
+			query += strconv.Itoa(t)
+		case float64:
+			number := strconv.FormatFloat(t, 'e', -1, 64)
+			s := strings.Split(number, "e")
+			if len(s) < 2 {
+				query += number
+			} else {
+				query += s[0]
+			}
+		}
+		if i != v.NumField()-1 {
+			query += mysql.Comma
+		}
+	}
+	query += ")"
+	return query + mysql.EndQuery, nil
+}
+
+// Delete returns
+func (qb *MySQLQueryBuilder) Delete(o interface{}) (string, error) {
+	query := mysql.Delete + mysql.From + qb.tableName + mysql.Where
+	v := reflect.ValueOf(o)
+	w := reflect.Indirect(v)
+	st := reflect.TypeOf(o)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		name := field.Tag.Get("db")
+		if name == "" {
+			query += w.Type().Field(i).Name + mysql.Equals
+		} else {
+			query += name + mysql.Equals
+		}
+		t := v.Field(i).Interface()
+		switch t := t.(type) {
+		case string:
+			query += "\"" + t + "\""
+		case int:
+			query += strconv.Itoa(t)
+		case float64:
+			number := strconv.FormatFloat(t, 'e', -1, 64)
+			s := strings.Split(number, "e")
+			if len(s) < 2 {
+				query += number
+			} else {
+				query += s[0]
+			}
+		}
+		if i != v.NumField()-1 {
+			query += mysql.And
+		}
+	}
+	return query + mysql.EndQuery, nil
+}
+
+func (qb *MySQLQueryBuilder) Update(new, old interface{}) (string, error) {
+	query := mysql.Update + qb.tableName + mysql.Set
+	v := reflect.ValueOf(new)
+	w := reflect.Indirect(v)
+	st := reflect.TypeOf(new)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		name := field.Tag.Get("db")
+		if name == "" {
+			query += w.Type().Field(i).Name + mysql.Equals
+		} else {
+			query += name + mysql.Equals
+		}
+		t := v.Field(i).Interface()
+		switch t := t.(type) {
+		case string:
+			query += "\"" + t + "\""
+		case int:
+			query += strconv.Itoa(t)
+		case float64:
+			number := strconv.FormatFloat(t, 'e', -1, 64)
+			s := strings.Split(number, "e")
+			if len(s) < 2 {
+				query += number
+			} else {
+				query += s[0]
+			}
+		}
+		if i != v.NumField()-1 {
+			query += mysql.Comma
+		}
+	}
+	query += mysql.Where
+	v = reflect.ValueOf(old)
+	w = reflect.Indirect(v)
+	st = reflect.TypeOf(old)
+	for i := 0; i < v.NumField(); i++ {
+		field := st.Field(i)
+		name := field.Tag.Get("db")
+		if name == "" {
+			query += w.Type().Field(i).Name + mysql.Equals
+		} else {
+			query += name + mysql.Equals
+		}
+		t := v.Field(i).Interface()
+		switch t := t.(type) {
+		case string:
+			query += "\"" + t + "\""
+		case int:
+			query += strconv.Itoa(t)
+		case float64:
+			number := strconv.FormatFloat(t, 'e', -1, 64)
+			s := strings.Split(number, "e")
+			if len(s) < 2 {
+				query += number
+			} else {
+				query += s[0]
+			}
+		}
+		if i != v.NumField()-1 {
+			query += mysql.Comma
+		}
+	}
+	return query + mysql.EndQuery, nil
 }
