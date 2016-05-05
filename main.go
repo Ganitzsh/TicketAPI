@@ -5,6 +5,7 @@ import (
 
 	"github.com/SQLApi/builder"
 	"github.com/SQLApi/handlers"
+	"github.com/SQLApi/models"
 )
 
 type TestType struct {
@@ -46,15 +47,15 @@ func main() {
 		1.60,
 	}
 
-	c := Customer{
-		CustomerID:  "BLABL",
-		CompanyName: "Les Beaufs",
-		ContactName: "Maurice LeBlanc",
-		Address:     "3 Rue des plaines",
-		City:        "Nice",
-		PostalCode:  "89780",
-		Country:     "France",
-	}
+	// c := Customer{
+	// 	CustomerID:  "BLABL",
+	// 	CompanyName: "Les Beaufs",
+	// 	ContactName: "Maurice LeBlanc",
+	// 	Address:     "3 Rue des plaines",
+	// 	City:        "Nice",
+	// 	PostalCode:  "89780",
+	// 	Country:     "France",
+	// }
 
 	fmt.Println(builder.NewMySQLQuery("user", "id").Insert(tmp))
 	fmt.Println(builder.NewMySQLQuery("user", "id").Delete(tmp))
@@ -64,32 +65,37 @@ func main() {
 		panic(err)
 	}
 	h := api.DBHandler.(*handlers.MySQLHandler)
-	res, err := h.GetAll("Categories")
+	// res, err := h.GetAll("Categories")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(res)
+	// res, err = h.GetBy("Categories", []string{"CategoryName", "Description"}, []string{"CategoryID"}, []string{"1"})
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(res)
+	// res, err = h.Delete("Customers", c)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(res)
+	// res, err = h.Insert("Customers", c)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(res)
+	// new := c
+	// new.PostalCode = "75018"
+	// res, err = h.Update("Customers", new, c)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(res)
+	res, err := h.GetAll(models.Ticket{}, "ticket")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(res)
-	res, err = h.GetBy("Categories", []string{"CategoryName", "Description"}, []string{"CategoryID"}, []string{"1"})
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(res)
-	res, err = h.Delete("Customers", c)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(res)
-	res, err = h.Insert("Customers", c)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(res)
-	new := c
-	new.PostalCode = "75018"
-	res, err = h.Update("Customers", new, c)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(res)
-	api.Run()
+	// api.Run()
 }

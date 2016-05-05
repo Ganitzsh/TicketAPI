@@ -3,6 +3,8 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"reflect"
 
 	"github.com/SQLApi/builder"
 	"github.com/SQLApi/config"
@@ -34,7 +36,7 @@ func (h *MySQLHandler) IsAvailable() error {
 }
 
 // GetAll retrieves all elements of the given table from the database
-func (h *MySQLHandler) GetAll(o ...interface{}) (interface{}, error) {
+func (h *MySQLHandler) GetAll(t interface{}, o ...interface{}) (interface{}, error) {
 	var selector []string
 	if o == nil {
 		return nil, errors.New("No table name specified")
@@ -48,7 +50,51 @@ func (h *MySQLHandler) GetAll(o ...interface{}) (interface{}, error) {
 	}
 	query := builder.NewMySQLQuery(tableName, "").GetAll(selector)
 	logrus.WithField("query", query).Info("Querying " + tableName + " table")
-	return h.Conn.Query(query)
+	rows, err := h.Conn.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	rowsCpy, err := h.Conn.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use reflection on t object pased as parameter to automatically bind model's
+	// struct field addresses for binding
+	typeOf := reflect.TypeOf(t)
+	var ptrs [][]interface{}
+	var res []interface{}
+	for rowsCpy.Next() {
+		// Create new instance of object corresponding to model passed as parameter
+		tmp := reflect.New(typeOf).Interface()
+		fmt.Println("Instance type: ", reflect.TypeOf(tmp))
+		// Add it to to result, to return the whole content of the request after
+		// binding
+		res = append(res, tmp)
+		// Get reflect.Value of instace to loop through fields
+		v := reflect.ValueOf(tmp).Elem()
+		fieldAddresses := make([]interface{}, v.NumField())
+		// Loop through instnce field
+		for i := 0; i < v.NumField(); i++ {
+			// Get current field reflect.Value
+			valueField := v.Field(i)
+			if valueField.CanAddr() {
+				// Get the address of the given field
+				tmp := valueField.Addr().Interface()
+				fieldAddresses[i] = tmp
+			}
+		}
+		// Store fields addresses into final array
+		ptrs = append(ptrs, fieldAddresses)
+	}
+	// Bind model
+	h.Bind(rows, ptrs)
+
+	// DEBUG: Print result content
+	for i := 0; i < len(res); i++ {
+		fmt.Println("Value: ", res[i])
+	}
+	return res, nil
 }
 
 func (h *MySQLHandler) GetBy(o ...interface{}) (interface{}, error) {
@@ -125,4 +171,16 @@ func (h *MySQLHandler) Delete(o ...interface{}) (interface{}, error) {
 	}
 	logrus.WithField("args", args).Info(query)
 	return stmt.Exec(args...)
+}
+
+func (h *MySQLHandler) Bind(content *sql.Rows, ptrs [][]interface{}) {
+	i := 0
+	for content.Next() {
+		err := content.Scan(ptrs[i]...)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(ptrs[i])
+		i++
+	}
 }
