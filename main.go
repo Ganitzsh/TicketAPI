@@ -92,7 +92,20 @@ func main() {
 	// 	panic(err)
 	// }
 	// fmt.Println(res)
+
+	// Get all tickets from database
 	res, err := h.GetAll(models.Ticket{}, "ticket")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(res)
+	// Get the ticket with ID = 2
+	res, err = h.GetBy(models.Ticket{}, "ticket", nil, []string{"ID"}, []string{"2"})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(res)
+	res, err = h.GetBy(models.Ticket{}, "ticket", []string{"Subject"}, []string{"ID"}, []string{"2"})
 	if err != nil {
 		panic(err)
 	}

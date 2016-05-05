@@ -4,7 +4,7 @@ package handlers
 type IHandler interface {
 	IsAvailable() error
 	GetAll(t interface{}, o ...interface{}) (interface{}, error)
-	GetBy(o ...interface{}) (interface{}, error)
+	GetBy(t interface{}, o ...interface{}) (interface{}, error)
 	Insert(o ...interface{}) (interface{}, error)
 	Update(o ...interface{}) (interface{}, error)
 	Delete(o ...interface{}) (interface{}, error)
